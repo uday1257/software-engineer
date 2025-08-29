@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .input-group label {
+            font-weight: 500;
+        }
+        .input-group input, .input-group textarea {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            width: 100%;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        #resume-preview {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 800px;
+        }
+        #resume-preview h2 {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .btn-primary {
+            @apply bg-indigo-500 text-white px-4 py-2 rounded-full hover:bg-indigo-600 transition-colors duration-200;
+        }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-lg p-6 flex flex-col lg:flex-row gap-8 shadow-xl">
+        
+        <!-- Input Panel -->
+        <div class="flex-1 p-6 bg-gray-50 rounded-lg shadow-inner">
+            <h1 class="text-3xl font-bold mb-6 text-gray-800">Resume Builder</h1>
+            <p class="text-sm text-gray-600 mb-6">Fill out the form to generate your resume. The preview will update automatically as you type.</p>
+
+            <!-- Personal Information -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="name" class="block text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe">
+                    </div>
+                    <div class="input-group">
+                        <label for="email" class="block text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email" placeholder="john.doe@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label for="phone" class="block text-gray-700 mb-1">Phone</label>
+                        <input type="tel" id="phone" placeholder="(123) 456-7890">
+                    </div>
+                    <div class="input-group">
+                        <label for="linkedin" class="block text-gray-700 mb-1">LinkedIn Profile</label>
+                        <input type="url" id="linkedin" placeholder="linkedin.com/in/johndoe">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700">Professional Summary</h2>
+                <div class="input-group">
+                    <textarea id="summary" rows="4" placeholder="A brief, powerful overview of your professional skills and experience."></textarea>
+                </div>
+            </div>
+
+            <!-- Work Experience -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                    Work Experience
+                    <button id="addWork" class="bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200">Add</button>
+                </h2>
+                <div id="work-experience-container">
+                    <!-- Work experience items will be added here -->
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                    Education
+                    <button id="addEducation" class="bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200">Add</button>
+                </h2>
+                <div id="education-container">
+                    <!-- Education items will be added here -->
+                </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                    Projects
+                    <button id="addProject" class="bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200">Add</button>
+                </h2>
+                <div id="projects-container">
+                    <!-- Projects will be added here -->
+                </div>
+            </div>
+            
+            <!-- Certifications -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                    Certifications
+                    <button id="addCertification" class="bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200">Add</button>
+                </h2>
+                <div id="certifications-container">
+                    <!-- Certifications will be added here -->
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                    Skills
+                    <button id="addSkill" class="bg-indigo-500 text-white text-sm px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200">Add</button>
+                </h2>
+                <div id="skills-container" class="flex flex-wrap gap-2">
+                    <!-- Skills will be added here -->
+                </div>
+            </div>
+
+             <button id="downloadPdf" class="btn-primary w-full mt-8">Download PDF</button>
+            
+        </div>
+        
+        <!-- Resume Preview Panel -->
+        <div class="flex-1 p-6 bg-white rounded-lg border border-gray-200">
+            <div id="resume-preview" class="p-8">
+                <!-- Resume content will be generated here -->
+                <div id="preview-placeholder" class="text-center text-gray-400 p-20">
+                    <p>Your resume preview will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure to hold all resume information
+        let resumeData = {
+            name: '',
+            email: '',
+            phone: '',
+            linkedin: '',
+            summary: '',
+            work: [],
+            education: [],
+            projects: [],
+            certifications: [],
+            skills: []
+        };
+
+        const formElements = {
+            name: document.getElementById('name'),
+            email: document.getElementById('email'),
+            phone: document.getElementById('phone'),
+            linkedin: document.getElementById('linkedin'),
+            summary: document.getElementById('summary'),
+            workContainer: document.getElementById('work-experience-container'),
+            educationContainer: document.getElementById('education-container'),
+            projectsContainer: document.getElementById('projects-container'),
+            certificationsContainer: document.getElementById('certifications-container'),
+            skillsContainer: document.getElementById('skills-container'),
+            addWorkBtn: document.getElementById('addWork'),
+            addEducationBtn: document.getElementById('addEducation'),
+            addProjectBtn: document.getElementById('addProject'),
+            addCertificationBtn: document.getElementById('addCertification'),
+            addSkillBtn: document.getElementById('addSkill')
+        };
+
+        const previewElement = document.getElementById('resume-preview');
+        const downloadPdfBtn = document.getElementById('downloadPdf');
+        
+        // Initial setup for empty sections
+        addWorkExperience();
+        addEducationEntry();
+        addProjectEntry();
+        addCertificationEntry();
+
+        // Event listeners for static inputs
+        Object.keys(resumeData).forEach(key => {
+            if (formElements[key]) {
+                formElements[key].addEventListener('input', (e) => {
+                    resumeData[key] = e.target.value;
+                    renderPreview();
+                });
+            }
+        });
+
+        // Event listeners for dynamic sections
+        formElements.addWorkBtn.addEventListener('click', addWorkExperience);
+        formElements.addEducationBtn.addEventListener('click', addEducationEntry);
+        formElements.addProjectBtn.addEventListener('click', addProjectEntry);
+        formElements.addCertificationBtn.addEventListener('click', addCertificationEntry);
+        formElements.addSkillBtn.addEventListener('click', () => {
+            const skillName = prompt('Enter a skill:');
+            if (skillName) {
+                resumeData.skills.push(skillName.trim());
+                renderPreview();
+            }
+        });
+
+        // Download PDF functionality
+        downloadPdfBtn.addEventListener('click', () => {
+            const resumeContent = document.getElementById('resume-preview');
+            html2canvas(resumeContent, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgProps= pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('resume.pdf');
+            });
+        });
+
+
+        // Function to render the entire resume preview
+        function renderPreview() {
+            const isEmpty = Object.values(resumeData).every(val => {
+                if (Array.isArray(val)) return val.length === 0 || val.every(item => Object.values(item).every(v => !v));
+                return !val;
+            });
+
+            if (isEmpty) {
+                previewElement.innerHTML = `<div id="preview-placeholder" class="text-center text-gray-400 p-20"><p>Your resume preview will appear here.</p></div>`;
+                return;
+            }
+
+            let html = '';
+
+            // --- Header Section ---
+            if (resumeData.name) {
+                html += `
+                    <div class="text-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">${resumeData.name}</h1>
+                        <div class="flex justify-center text-sm text-gray-600 space-x-4 mt-2">
+                            ${resumeData.email ? `<p><i class="fas fa-envelope mr-1 text-indigo-500"></i> ${resumeData.email}</p>` : ''}
+                            ${resumeData.phone ? `<p><i class="fas fa-phone mr-1 text-indigo-500"></i> ${resumeData.phone}</p>` : ''}
+                            ${resumeData.linkedin ? `<p><i class="fab fa-linkedin mr-1 text-indigo-500"></i> <a href="${resumeData.linkedin}" target="_blank" class="hover:underline">${resumeData.linkedin.replace(/^(https?:\/\/)?(www\.)?/i, '')}</a></p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- Summary Section ---
+            if (resumeData.summary) {
+                html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Summary</h2>
+                        <p class="text-gray-600">${resumeData.summary}</p>
+                    </div>
+                `;
+            }
+
+            // --- Work Experience Section ---
+            if (resumeData.work.some(job => job.company || job.title)) {
+                html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Work Experience</h2>
+                        ${resumeData.work.map((job, index) => `
+                            <div class="mb-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-lg text-gray-800">${job.title}</h3>
+                                    <p class="text-sm text-gray-600">${job.dates}</p>
+                                </div>
+                                <p class="font-medium text-gray-600">${job.company} - ${job.location}</p>
+                                ${job.description ? `<ul class="list-disc list-inside mt-1 text-gray-600">
+                                    ${job.description.split('\n').map(item => item.trim() ? `<li>${item.trim()}</li>` : '').join('')}
+                                </ul>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // --- Education Section ---
+            if (resumeData.education.some(edu => edu.degree || edu.institution)) {
+                html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Education</h2>
+                        ${resumeData.education.map((edu, index) => `
+                            <div class="mb-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-lg text-gray-800">${edu.degree}</h3>
+                                    <p class="text-sm text-gray-600">${edu.dates}</p>
+                                </div>
+                                <p class="font-medium text-gray-600">${edu.institution} - ${edu.location}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // --- Projects Section ---
+            if (resumeData.projects.some(project => project.name)) {
+                 html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Projects</h2>
+                        ${resumeData.projects.map((project, index) => `
+                            <div class="mb-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-lg text-gray-800">${project.name}</h3>
+                                    <p class="text-sm text-gray-600">${project.dates}</p>
+                                </div>
+                                ${project.description ? `<ul class="list-disc list-inside mt-1 text-gray-600">
+                                    ${project.description.split('\n').map(item => item.trim() ? `<li>${item.trim()}</li>` : '').join('')}
+                                </ul>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // --- Certifications Section ---
+            if (resumeData.certifications.some(cert => cert.name)) {
+                 html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-700">Certifications</h2>
+                        ${resumeData.certifications.map((cert, index) => `
+                            <div class="mb-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-lg text-gray-800">${cert.name}</h3>
+                                    <p class="text-sm text-gray-600">${cert.dates}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // --- Skills Section ---
+            if (resumeData.skills.length > 0) {
+                html += `
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700">Skills</h2>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            ${resumeData.skills.map(skill => `
+                                <span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-2.5 py-0.5 rounded-full">${skill}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            previewElement.innerHTML = html;
+        }
+
+        // Functions to handle dynamic sections
+        function addWorkExperience() {
+            const index = resumeData.work.length;
+            resumeData.work.push({ company: '', title: '', location: '', dates: '', description: '' });
+            
+            const workHtml = `
+                <div class="work-item p-4 mb-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-end">
+                        <button class="remove-item text-red-500 hover:text-red-700 transition-colors" data-section="work" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Company</label>
+                            <input type="text" data-field="company" data-index="${index}" placeholder="Company Name">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Job Title</label>
+                            <input type="text" data-field="title" data-index="${index}" placeholder="e.g., Software Engineer">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Location</label>
+                            <input type="text" data-field="location" data-index="${index}" placeholder="City, State">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Dates</label>
+                            <input type="text" data-field="dates" data-index="${index}" placeholder="e.g., 2020 - Present">
+                        </div>
+                    </div>
+                    <div class="input-group mt-4">
+                        <label class="block text-gray-700 mb-1">Description (one bullet point per line)</label>
+                        <textarea data-field="description" data-index="${index}" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
+                    </div>
+                </div>
+            `;
+            formElements.workContainer.insertAdjacentHTML('beforeend', workHtml);
+            addDynamicListeners('work', index);
+        }
+
+        function addEducationEntry() {
+            const index = resumeData.education.length;
+            resumeData.education.push({ institution: '', degree: '', location: '', dates: '' });
+
+            const educationHtml = `
+                <div class="education-item p-4 mb-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-end">
+                        <button class="remove-item text-red-500 hover:text-red-700 transition-colors" data-section="education" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Institution</label>
+                            <input type="text" data-field="institution" data-index="${index}" placeholder="University Name">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Degree</label>
+                            <input type="text" data-field="degree" data-index="${index}" placeholder="e.g., B.S. in Computer Science">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Location</label>
+                            <input type="text" data-field="location" data-index="${index}" placeholder="City, State">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Dates</label>
+                            <input type="text" data-field="dates" data-index="${index}" placeholder="e.g., 2016 - 2020">
+                        </div>
+                    </div>
+                </div>
+            `;
+            formElements.educationContainer.insertAdjacentHTML('beforeend', educationHtml);
+            addDynamicListeners('education', index);
+        }
+        
+        function addProjectEntry() {
+            const index = resumeData.projects.length;
+            resumeData.projects.push({ name: '', dates: '', description: '' });
+
+            const projectHtml = `
+                <div class="project-item p-4 mb-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-end">
+                        <button class="remove-item text-red-500 hover:text-red-700 transition-colors" data-section="projects" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Project Name</label>
+                            <input type="text" data-field="name" data-index="${index}" placeholder="e.g., Portfolio Website">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Dates</label>
+                            <input type="text" data-field="dates" data-index="${index}" placeholder="e.g., Aug 2023 - Nov 2023">
+                        </div>
+                    </div>
+                    <div class="input-group mt-4">
+                        <label class="block text-gray-700 mb-1">Description (one bullet point per line)</label>
+                        <textarea data-field="description" data-index="${index}" rows="3" placeholder="Description of your role and contributions..."></textarea>
+                    </div>
+                </div>
+            `;
+            formElements.projectsContainer.insertAdjacentHTML('beforeend', projectHtml);
+            addDynamicListeners('projects', index);
+        }
+        
+        function addCertificationEntry() {
+            const index = resumeData.certifications.length;
+            resumeData.certifications.push({ name: '', dates: '' });
+
+            const certHtml = `
+                <div class="certification-item p-4 mb-4 bg-white rounded-lg border border-gray-200">
+                    <div class="flex justify-end">
+                        <button class="remove-item text-red-500 hover:text-red-700 transition-colors" data-section="certifications" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Certification Name</label>
+                            <input type="text" data-field="name" data-index="${index}" placeholder="e.g., AWS Certified Solutions Architect">
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-gray-700 mb-1">Dates</label>
+                            <input type="text" data-field="dates" data-index="${index}" placeholder="e.g., Aug 2023">
+                        </div>
+                    </div>
+                </div>
+            `;
+            formElements.certificationsContainer.insertAdjacentHTML('beforeend', certHtml);
+            addDynamicListeners('certifications', index);
+        }
+
+        // Add event listeners to dynamically created elements
+        function addDynamicListeners(section, index) {
+            document.querySelectorAll(`[data-section="${section}"][data-index="${index}"]`).forEach(input => {
+                input.addEventListener('input', (e) => {
+                    resumeData[section][index][e.target.dataset.field] = e.target.value;
+                    renderPreview();
+                });
+            });
+            // Attach a single listener to the container for remove buttons
+            document.querySelector(`#${section}-container`).addEventListener('click', (e) => {
+                if (e.target.closest('.remove-item')) {
+                    handleRemoveItem(e);
+                }
+            });
+        }
+        
+        function handleRemoveItem(e) {
+            const button = e.target.closest('.remove-item');
+            if (!button) return;
+
+            const section = button.dataset.section;
+            const index = parseInt(button.dataset.index);
+
+            // Remove the data from the array
+            resumeData[section].splice(index, 1);
+            
+            // Remove the input item from the DOM
+            e.target.closest('.work-item, .education-item, .project-item, .certification-item').remove();
+            
+            // Re-render the entire preview to update indices
+            renderPreview();
+        }
+        
+        // Initial render
+        renderPreview();
+    </script>
+</body>
+</html>
